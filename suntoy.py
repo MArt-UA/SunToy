@@ -36,15 +36,15 @@ def play_sound (filename):
 # Привітання та увімкнення
 
 def greeting():
-  play_sound('sounds/greeting.mp3')
+  play_sound('sounds/introTurnOn.mp3')
 
   # Реакція на NFC-мітку
 
 def intro_for_tag(tag_id):
-  if tag_id == 'FOX123':
-    play_sound('sounds/fox_intro.wav')
+  if tag_id == 'Kotygoroshko123':
+    play_sound('sounds/introToy.mp3')
   elif tag_id == 'REC456':
-    play_sound('sounds/record_intro.wav')
+    play_sound('sounds/introToy.mp3')
 
 # Запис мікрофону  
 def start_recording():
@@ -68,7 +68,7 @@ def stop_recording():
   # Мікшування запису + музика
 def mix_with_background():
   voice = AudioSegment.from_wav('sounds/recorded_story.wav')
-  music = AudioSegment_from.mp3('sounds/Background_Sound.mp3') - 18
+  music = AudioSegment_from.mp3('sounds/backgroundSoundForRecord.mp3') - 18
   while len(music) < len(voice):
     music += music
   music = music[:len(voice)]
@@ -79,7 +79,7 @@ def mix_with_background():
 # Робота кнопки Play
 def on_play_pressed():
   if current_tag == 'FOX123':
-    play_sound('sounds/fox.story.wav')
+    play_sound('sounds/storyKotygoroshko.mp3')
   elif current_tag == 'REC456':
     play_sound('sounds/final_story.wav')
 
