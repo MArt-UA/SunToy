@@ -34,5 +34,6 @@ def wheel(pos):
 
 # Запускаємо веселку!
 while True:
-    rainbow_cycle(3.9)
+    rainbow_cycle(3.9) ffffffffffffff
+
 
