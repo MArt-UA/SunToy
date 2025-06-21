@@ -12,7 +12,7 @@ from signal import pause
 # Налаштування 
 
 pygame.mixer.init()
-volume_level = 0.8 #Початкова гучність
+volume_level = 0.99 #Початкова гучність
 
 # Кнопки
 
@@ -36,8 +36,9 @@ def play_sound (filename):
 # Привітання та увімкнення
 
 def greeting():
-  play_sound('sounds/introTurnOn.mp3')
-
+   play_sound('sounds/introTurnOn.mp3')
+   #play_sound('sounds/black-sabbath_-_iron-man.mp3')
+  
   # Реакція на NFC-мітку
 
 def intro_for_tag(tag_id):
@@ -68,7 +69,7 @@ def stop_recording():
   # Мікшування запису + музика
 def mix_with_background():
   voice = AudioSegment.from_wav('sounds/recorded_story.wav')
-  music = AudioSegment_from.mp3('sounds/backgroundSoundForRecord.mp3') - 18
+  music = AudioSegment.from_mp3('sounds/backgroundSoundForRecord.mp3') - 18
   while len(music) < len(voice):
     music += music
   music = music[:len(voice)]
@@ -96,8 +97,14 @@ def simulate_nfc(tag_id):
   intro_for_tag(tag_id)
 
 # Обробка кнопок 
-  button_play.when_pressed = on_play_pressed
-  button_rec.when_pressed = on_rec_pressed
+button_play.when_pressed = on_play_pressed
+button_rec.when_pressed = on_rec_pressed
+
+# Привітання
+greeting()
 
 # Очікування (утримання програми в памяті)
-  pause()
+#pause()
+
+
+#
