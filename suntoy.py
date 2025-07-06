@@ -5,6 +5,7 @@ print('Привіт із SunToy!')
 import pygame
 import os 
 import time
+import subprocess
 from pydub import AudioSegment
 from gpiozero import Button
 from signal import pause
@@ -12,7 +13,7 @@ from signal import pause
 # Налаштування 
 
 pygame.mixer.init()
-volume_level = 0.99 #Початкова гучність
+volume_level = 0.8 #Початкова гучність
 
 # Кнопки
 
@@ -23,6 +24,7 @@ button_rec = Button(27)
 
 current_tag = None
 is_recording = False
+recording_process = None 
 
 # Функції для відтворення звуку
 
@@ -49,9 +51,9 @@ def intro_for_tag(tag_id):
 
 # Запис мікрофону  
 def start_recording():
-  global is_recording
+  global is_recording, recording 
   is_recording = True
-  os.system('arecord -D plughw:1,0 -f cd -t wav -d 300 -r 44100 sounds/recorded_story.wav &')
+  os.system('arecord -D plughw:3,0 -f cd -t wav -d 300 -r 44100 sounds/recorded_story.wav &')
 
   ''' -D plughw:1,0 — вибирає мікрофон (можемо змінити, якщо треба)
 -f cd — стандартна якість (16-біт, 44100 Гц)
@@ -93,6 +95,7 @@ def on_rec_pressed():
 
 # Симуляція NFC
 def simulate_nfc(tag_id):
+  global current_tag
   current_tag = tag_id
   intro_for_tag(tag_id)
 
@@ -101,10 +104,22 @@ button_play.when_pressed = on_play_pressed
 button_rec.when_pressed = on_rec_pressed
 
 # Привітання
-greeting()
+#greeting()
 
 # Очікування (утримання програми в памяті)
 #pause()
+print('Симуляція мітки REC456 (режим запису)')
+simulate_nfc('REC456')
+time.sleep(1)
+
+print('Натискання кнопки запису - початок запису')
+on_rec_pressed()
+time.sleep(10) #записуємо 10 секунд
+print('Натискання кнопки запису вдруге - зупинка і мікшування')
+on_rec_pressed()
+
+print('Натискання кнопки програвання - відтворення фінального файлу')
+on_play_pressed()
 
 
 #
