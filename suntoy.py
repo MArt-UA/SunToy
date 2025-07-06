@@ -51,9 +51,18 @@ def intro_for_tag(tag_id):
 
 # Запис мікрофону  
 def start_recording():
-  global is_recording, recording 
+  global is_recording, recording_process 
   is_recording = True
-  os.system('arecord -D plughw:3,0 -f cd -t wav -d 300 -r 44100 sounds/recorded_story.wav &')
+  print('🎙️ Початок запису...')
+  recording_process = subprocess.Popen([
+    'arecord',
+    '-D', 'plughw:3,0',  # або plughw:1,0 — якщо ваша карта інша
+    '-f', 'cd',
+    '-t', 'wav',
+    '-d', '300',
+    '-r', '44100',
+    'sounds/recorded_story.wav'
+])
 
   ''' -D plughw:1,0 — вибирає мікрофон (можемо змінити, якщо треба)
 -f cd — стандартна якість (16-біт, 44100 Гц)
@@ -63,15 +72,21 @@ def start_recording():
 
   # Завершення запису 
 def stop_recording():
-  global is_recording
+  global is_recording, recording_process
+  if recording_process:
+    recording_process.terminate()
+    recording_process.wait()
+    print('Запис завершено!')
   is_recording = False
-  os.system('pkill arecord')
   mix_with_background()
+  if not os.path.exists('sounds/final_story.wav'):  # Перевірка чи є об'єднаний файл записаної історії
+     print('Файл ще не готовий!')
+     return
 
   # Мікшування запису + музика
 def mix_with_background():
-  voice = AudioSegment.from_wav('sounds/recorded_story.wav')
-  music = AudioSegment.from_mp3('sounds/backgroundSoundForRecord.mp3') - 18
+  voice = AudioSegment.from_wav('sounds/recorded_story.wav') +10
+  music = AudioSegment.from_mp3('sounds/backgroundSoundForRecord.mp3') - 25 #робить звук фону тихіше від -1 до -25
   while len(music) < len(voice):
     music += music
   music = music[:len(voice)]
