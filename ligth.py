@@ -1,17 +1,19 @@
-import board
-import neopixel
+import RPi.GPIO as GPIO
 import time
 
-NUM_PIXELS = 8
-PIXEL_PIN = board.D18  # GPIO18
+LED_PIN = 17  # GPIO17
 
-pixels = neopixel.NeoPixel(PIXEL_PIN, NUM_PIXELS, brightness=0.5, auto_write=False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(LED_PIN, GPIO.OUT)
 
-while True:
-    for i in range(NUM_PIXELS):
-        pixels[i] = (255, 0, 0)  # червоний
-        pixels.show()
-        time.sleep(0.1)
-        pixels[i] = (0, 0, 0)
+try:
+    while True:
+        GPIO.output(LED_PIN, GPIO.HIGH)  # вмикаємо
+        time.sleep(0.)
+        GPIO.output(LED_PIN, GPIO.LOW)   # вимикаємо
+        time.sleep(0.)
+except KeyboardInterrupt:
+    GPIO.output(LED_PIN, GPIO.LOW)
+    GPIO.cleanup()
 
 

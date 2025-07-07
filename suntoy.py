@@ -1,4 +1,4 @@
-print('Привіт із SunToy!')
+`print('Привіт із SunToy!')
 
 # Імпорт бібліотек
 
@@ -138,3 +138,4 @@ on_play_pressed()
 
 
 #
+`
