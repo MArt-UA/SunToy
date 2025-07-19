@@ -1,114 +1,94 @@
-import board
-import busio
-import time
-import threading
-import RPi.GPIO as GPIO
-from digitalio import DigitalInOut
-from adafruit_pn532.i2c import PN532_I2C
-import vlc
-import os
+# player.py
+import vlc, os, threading, time, RPi.GPIO as GPIO
 
-# === GPIO ===
-TOUCH_PIN = 17
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(TOUCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# files
+GREETING   = "/home/pi/SunToy/SunToy/sounds/introTurnOn.mp3"
+INTRO      = "/home/pi/SunToy/SunToy/sounds/fairyTale/storyKotygoroshko.mp3"
+STORY      = "/home/pi/SunToy/SunToy/sounds/fairyTale/Kotygoroshko_Full.ogg"
 
-# === ФАЙЛИ ===
-greeting_file = "/home/pi/SunToy/SunToy/sounds/introTurnOn.mp3"
-kotyhoroshko_intro = "/home/pi/SunToy/SunToy/sounds/fairyTale/storyKotygoroshko.mp3"
-kotyhoroshko_story = "/home/pi/SunToy/SunToy/sounds/fairyTale/Kotygoroshko_Full.ogg"
+# state
+player      = None
+story_ready = None
+stop_flag   = threading.Event()
+lock        = threading.Lock()
 
-# === СТАНИ ===
-story_queued = None
-player = None
-lock = threading.RLock()
+def set_volume(vol_percent):
+    with lock:
+        if player:
+            player.audio_set_volume(vol_percent)
 
-# Функція для відтворення аудіо через VLC
-def play_audio(file_path):
+def play_audio(path):
     global player
     with lock:
-        if not os.path.exists(file_path):
-            print(f"[ERROR] ❌ Файл не знайдено: {file_path}")
+        if not os.path.exists(path):
+            print(f"[player] missing {path}")
             return
         if player:
             player.stop()
-        player = vlc.MediaPlayer(file_path)
+        player = vlc.MediaPlayer(path)
         player.audio_set_volume(100)
         player.play()
-        print(f"[🔊] Відтворення: {file_path}")
 
-# Функція для чекання завершення відтворення
-def wait_until_done():
-    while player and player.is_playing():
-        time.sleep(0.1)
-
-# Обробка натискання кнопки
 def toggle_pause_resume():
-    global story_queued
     with lock:
-        print(f"[TOGGLE] queued={story_queued}, playing={player.is_playing() if player else False}")
-        if story_queued and (not player or not player.is_playing()):
-            file = story_queued
-            story_queued = None
-            print("▶️ Старт історії")
-            play_audio(file)
+        if story_ready and (not player or not player.is_playing()):
+            print("[player] ▶️ Start story")
+            play_audio(story_ready)
+            story_ready = None
             return
-        if not player:
-            return
+        if not player: return
         if player.is_playing():
             player.pause()
-            print("⏸️ Пауза")
         else:
             player.play()
-            print("▶️ Відновлення")
 
-# Слухаємо кнопку у окремому потоці
-def watch_touch():
-    prev = GPIO.input(TOUCH_PIN)
-    while True:
-        cur = GPIO.input(TOUCH_PIN)
-        if prev == GPIO.HIGH and cur == GPIO.LOW:
-            print("🔘 Кнопка натиснута")
-            toggle_pause_resume()
-        prev = cur
-        time.sleep(0.05)
+def stop():
+    with lock:
+        if player:
+            player.stop()
 
-# Ініціалізація NFC PN532
-i2c = busio.I2C(board.SCL, board.SDA)
-pn532 = PN532_I2C(i2c, debug=False)
-ic, ver, rev, support = pn532.firmware_version
-print(f"🟢 PN532 прошивка: {ver}.{rev}")
-pn532.SAM_configuration()
+def fade_led(pin):
+    # PWM fade in/out
+    pwm = GPIO.PWM(pin, 100)
+    pwm.start(0)
+    try:
+        while not stop_flag.is_set():
+            for dc in list(range(0,101,5))+list(range(100,-1,-5)):
+                pwm.ChangeDutyCycle(dc)
+                time.sleep(0.03)
+                if stop_flag.is_set(): break
+            if stop_flag.is_set(): break
+    finally:
+        pwm.stop()
+        GPIO.output(pin, False)
 
-# Головна функція
-def main():
-    global story_queued
-    print("👋 Іграшка увімкнена!")
-    play_audio(greeting_file)
-    wait_until_done()
+def blink_led(pin):
+    while not stop_flag.is_set():
+        GPIO.output(pin, True); time.sleep(0.5)
+        GPIO.output(pin, False); time.sleep(0.5)
+    GPIO.output(pin, False)
 
-    threading.Thread(target=watch_touch, daemon=True).start()
+def start():
+    pass  # nothing on module load
 
-    print("📡 Очікуємо NFC мітку...")
-    last_uid = None
+def play_story(led_pin):
+    # greeting
+    print("[player] 👋 greeting")
+    play_audio(GREETING)
+    time.sleep(1)
+    # intro
+    print("[player] 🎙️ intro")
+    play_audio(INTRO)
+    while player.is_playing(): time.sleep(0.1)
+    # queue story
+    global story_ready
+    story_ready = STORY
+    print("[player] ⏳ ready, press Play")
+    # start fade thread on pause-led
+    stop_flag.clear()
+    threading.Thread(target=fade_led, args=(13,), daemon=True).start()
+    # blink thread on play-led
+    threading.Thread(target=blink_led, args=(led_pin,), daemon=True).start()
 
-    while True:
-        uid = pn532.read_passive_target(timeout=0.5)
-        if uid:
-            uid_str = uid.hex()
-            if uid_str != last_uid:
-                print(f"📛 Зчитано UID: {uid_str}")
-                last_uid = uid_str
-                if uid_str == "53c5be5d720001":
-                    print("🎙️ Intro Котигорошко")
-                    play_audio(kotyhoroshko_intro)
-                    wait_until_done()
-                    print("⏳ Очікуємо кнопку для старту казки...")
-                    story_queued = kotyhoroshko_story
-        time.sleep(0.2)
-
-if __name__ == "__main__":
-    main()
-
-
-
+# expose API
+__all__ = ("play_story","toggle_pause_resume","set_volume","stop","start")
