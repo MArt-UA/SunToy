@@ -3,7 +3,7 @@ import os, vlc, time, threading
 import RPi.GPIO as GPIO
 
 # === GPIO PINS ===
-VOLUME_PIN = 27   # кнопка гучності
+VOLUME_PIN = 22   # кнопка гучності
 
 # === AUDIO PATHS ===
 INTRO_FILE  = "/home/pi/SunToy/SunToy/sounds/introTurnOn.mp3"
@@ -65,6 +65,25 @@ def toggle_pause_resume():
         else:
             player.play()
             print("[player] ▶️ Resumed")
+
+def change_volume():
+    """Змінює гучність циклічно (80 → 100 → 40 → 80)."""
+    global volume
+    if   volume < 0.8: volume = 0.8
+    elif volume < 1.0: volume = 1.0
+    elif volume < 1.1: volume = 0.4
+    else: volume = 0.8
+    if player:
+        player.audio_set_volume(int(volume * 100))
+    print(f"[player] 🌀 Vol: {int(volume*100)}%")
+
+def stop():
+    global active, player
+    active = False
+    if player:
+        player.stop()
+    print("[player] 🛑 Player mode OFF")
+
 
 def watch_volume_button():
     """Керування гучністю, тільки коли active==True."""

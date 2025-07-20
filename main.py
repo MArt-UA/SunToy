@@ -7,6 +7,7 @@ import player, recorder
 # === GPIO PINS ===
 PLAY_PIN     = 17
 REC_PIN      = 27
+VOLUME_PIN   = 22
 
 # === NFC TAGS ===
 PLAYER_TAG   = "53c5be5d720001"
@@ -19,6 +20,7 @@ current_mode = None
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PLAY_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(REC_PIN,  GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(VOLUME_PIN,  GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def on_play_pressed(channel):
     print(f"[main] ▶️ PLAY pressed, mode={current_mode}")
@@ -36,11 +38,17 @@ def on_rec_pressed(channel):
     else:
         print("[main] 🔘 REC ignored, not in recorder mode")
 
+def on_volume_pressed(channel):
+    print(f"[main] 🔊 VOLUME pressed (mode={current_mode})")
+    player.change_volume()
+
 # bind events
 GPIO.add_event_detect(PLAY_PIN, GPIO.FALLING,
                       callback=on_play_pressed, bouncetime=200)
 GPIO.add_event_detect(REC_PIN,  GPIO.FALLING,
                       callback=on_rec_pressed,  bouncetime=200)
+GPIO.add_event_detect(VOLUME_PIN, GPIO.FALLING,
+                      callback=on_volume_pressed, bouncetime=200)
 
 # boost USB volume on boot
 USB_CARD    = 2
