@@ -66,26 +66,6 @@ def toggle_pause_resume():
             player.play()
             print("[player] ▶️ Resumed")
 
-def toggle_pause_resume():
-    """Play/Pause/Resume для записаної історії."""
-    global player, recorded
-    with lock:
-        if not recorded or not os.path.exists(FINAL_WAV):
-            print("[recorder] ❌ Story not ready")
-            play_audio(NOT_READY_MP3)
-            return
-        if not player:
-            # Якщо нічого не грає, стартуємо спочатку
-            play_audio(FINAL_WAV)
-            print("[recorder] ▶️ Start playing")
-        elif player.is_playing():
-            player.pause()
-            print("[recorder] ⏸️ Paused")
-        else:
-            player.play()
-            print("[recorder] ▶️ Resumed")
-
-
 def change_volume():
     """Змінює гучність циклічно (80 → 100 → 40 → 80)."""
     global volume, player

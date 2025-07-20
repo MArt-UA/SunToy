@@ -108,19 +108,26 @@ def change_volume():
         player.audio_set_volume(int(volume * 100))
     print(f"[recorder] 🌀 Vol: {int(volume*100)}%")
 
-
-def play_button_pressed():
-    """Відтворити FINAl_WAV чи NOT_READY."""
-    global blink_green
+def toggle_pause_resume():
+    """Play/Pause/Resume для записаної історії."""
+    global player, recorded
     with lock:
-        blink_green = False
-        GPIO.output(LED_GREEN, False)
-        if recorded and os.path.exists(FINAL_WAV):
-            print("[recorder] ▶️ Playing final story")
-            play_audio(FINAL_WAV)
-        else:
+        if not recorded or not os.path.exists(FINAL_WAV):
             print("[recorder] ❌ Story not ready")
             play_audio(NOT_READY_MP3)
+            return
+        if not player:
+            # Якщо нічого не грає, стартуємо спочатку
+            play_audio(FINAL_WAV)
+            print("[recorder] ▶️ Start playing")
+        elif player.is_playing():
+            player.pause()
+            print("[recorder] ⏸️ Paused")
+        else:
+            player.play()
+            print("[recorder] ▶️ Resumed")
+
+
 
 def led_blinker():
     while True:
