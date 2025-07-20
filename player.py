@@ -66,7 +66,7 @@ def toggle_pause_resume():
             player.play()
             print("[player] ▶️ Resumed")
 
-def change_volume():
+#def change_volume():
     """Змінює гучність циклічно (80 → 100 → 40 → 80)."""
     global volume
     if   volume < 0.8: volume = 0.8
@@ -85,7 +85,7 @@ def stop():
     print("[player] 🛑 Player mode OFF")
 
 
-def watch_volume_button():
+def change_volume():
     """Керування гучністю, тільки коли active==True."""
     global volume
     pressed = False

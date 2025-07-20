@@ -91,7 +91,7 @@ def rec_button_pressed():
             mix_with_background()
             blink_green  = True
 
-def change_volume():
+#def change_volume():
     """Змінює гучність циклічно (80 → 100 → 40 → 80)."""
     global volume
     if   volume < 0.8: volume = 0.8
@@ -103,7 +103,7 @@ def change_volume():
     print(f"[player] 🌀 Vol: {int(volume*100)}%")
 
 
-def watch_volume_button():
+def change_volume():
     """Керування гучністю, тільки коли active==True."""
     global volume
     pressed = False
