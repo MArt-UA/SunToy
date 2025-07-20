@@ -45,15 +45,20 @@ HOLD_INTERVAL    = 0.5
 
 def play_audio(path):
     global player
+    print(f"[recorder] play_audio({path}), player={player}")
     if not os.path.exists(path):
         print(f"[recorder] ERROR: {path} not found")
         return
     with lock:
         if player:
+            print("[recorder] Stopping old player...")
             player.stop()
+            player = None
         player = vlc_instance.media_player_new(path)
         player.audio_set_volume(int(volume * 100))
         player.play()
+        print(f"[recorder] player.play() CALLED")
+
 
 def mix_with_background():
     print("[recorder] 🔄 Mixing audio...")
@@ -110,24 +115,23 @@ def change_volume():
 
 def toggle_pause_resume():
     """Play/Pause/Resume для записаної історії."""
-    global player, recorded
+    global player
     with lock:
-        # Перевірка існування файла та валідності
+        print(f"[recorder] toggle_pause_resume CALLED, player={player}")
         if not os.path.exists(FINAL_WAV) or os.path.getsize(FINAL_WAV) < 10000:
             print("[recorder] ❌ Story not ready (no file or too small)")
             play_audio(NOT_READY_MP3)
             return
-        # Додаємо: запис дійсно був — прапорець true
-        recorded = True
         if not player:
+            print("[recorder] START new playback")
             play_audio(FINAL_WAV)
-            print("[recorder] ▶️ Start playing")
         elif player.is_playing():
+            print("[recorder] PAUSE")
             player.pause()
-            print("[recorder] ⏸️ Paused")
         else:
+            print("[recorder] RESUME")
             player.play()
-            print("[recorder] ▶️ Resumed")
+
 
 
 
