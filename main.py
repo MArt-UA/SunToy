@@ -8,6 +8,8 @@ import player, recorder
 PLAY_PIN     = 17
 REC_PIN      = 27
 VOLUME_PIN   = 22
+LED_NFC_1 = 13
+LED_NFC_2 = 19
 
 # === NFC TAGS ===
 PLAYER_TAG   = "53c5be5d720001"
@@ -21,13 +23,15 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(PLAY_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(REC_PIN,  GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(VOLUME_PIN,  GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(LED_NFC_1, GPIO.OUT)
+GPIO.setup(LED_NFC_2, GPIO.OUT)
 
 def on_play_pressed(channel):
     print(f"[main] ▶️ PLAY pressed, mode={current_mode}")
     if current_mode == "player":
         player.toggle_pause_resume()
     elif current_mode == "recorder":
-        recorder.play_button_pressed()
+        recorder.toggle_pause_resume()
     else:
         print("[main] ▶️ PLAY ignored, no mode")
 
@@ -103,11 +107,47 @@ def watch_nfc():
                     recorder.start()
         time.sleep(0.1)
 
+
+def nfc_led_watcher():
+    """Керує LED1/LED2 — сигналізують готовність NFC і відтворення."""
+    while True:
+        # Якщо жодного режиму — очікуємо NFC, просто світиться
+        if current_mode is None:
+            GPIO.output(LED_NFC_1, True)
+            GPIO.output(LED_NFC_2, True)
+        # Якщо активний режим і зараз іде відтворення (або в player, або в recorder)
+        elif current_mode == "player" and hasattr(player, 'player') and player.player and player.player.is_playing():
+            # Блимання під час відтворення
+            GPIO.output(LED_NFC_1, True)
+            GPIO.output(LED_NFC_2, False)
+            time.sleep(0.3)
+            GPIO.output(LED_NFC_1, False)
+            GPIO.output(LED_NFC_2, True)
+            time.sleep(0.3)
+            continue  # Щоб цикл не давав додаткової затримки
+        elif current_mode == "recorder" and hasattr(recorder, 'player') and recorder.player and recorder.player.is_playing():
+            # Блимання під час відтворення записаної історії
+            GPIO.output(LED_NFC_1, True)
+            GPIO.output(LED_NFC_2, False)
+            time.sleep(0.3)
+            GPIO.output(LED_NFC_1, False)
+            GPIO.output(LED_NFC_2, True)
+            time.sleep(0.3)
+            continue
+        else:
+            # Режим активний, але нічого не відтворюється — просто світиться
+            GPIO.output(LED_NFC_1, True)
+            GPIO.output(LED_NFC_2, True)
+        time.sleep(0.1)
+
+
 def main():
     boot()
     threading.Thread(target=watch_nfc, daemon=True).start()
+    threading.Thread(target=nfc_led_watcher, daemon=True).start()
     while True:
         time.sleep(1)
 
 if __name__ == "__main__":
     main()
+
