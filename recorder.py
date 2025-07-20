@@ -73,6 +73,12 @@ def rec_button_pressed():
         if record_mode and not is_recording:
             print("[recorder] 🎙️ Start recording…")
             GPIO.output(LED_RED, True)
+            if os.path.exists(RAW_WAV):
+                os.remove(RAW_WAV)
+                print("[recorder] 🗑️ Видалено старий запис RAW_WAV")
+            if os.path.exists(FINAL_WAV):
+                os.remove(FINAL_WAV)
+                print("[recorder] 🗑️ Видалено старий файл FINAL_WAV")
             record_process = subprocess.Popen([
                 "arecord","-D","plughw:1,0",
                 "-f","cd","-t","wav","-d","180", RAW_WAV
