@@ -91,12 +91,15 @@ def watch_nfc():
             if u != last:
                 print(f"[main] 📛 Tag: {u}")
                 last = u
-                # вимикаємо попередній режим
+                # Зупиняємо все активне
                 if current_mode == "player":
                     player.stop()
+                    recorder.stop_playback()  # ← додано!
                 elif current_mode == "recorder":
                     recorder.stop()
+                    player.stop()  # ← додано!
 
+                # Далі як і було:
                 if u == PLAYER_TAG:
                     current_mode = "player"
                     player.start()
@@ -106,6 +109,7 @@ def watch_nfc():
                     current_mode = "recorder"
                     recorder.start()
         time.sleep(0.1)
+
 
 
 def nfc_led_watcher():

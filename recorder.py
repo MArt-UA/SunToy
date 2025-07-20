@@ -156,3 +156,12 @@ def stop():
     global record_mode
     record_mode = False
     print("[recorder] 🛑 Recorder mode OFF")
+
+def stop_playback():
+    """Зупиняє будь-яке поточне відтворення історії."""
+    global player
+    if player:
+        player.stop()
+        player = None
+        print("[recorder] 🛑 Playback stopped")
+

@@ -79,11 +79,14 @@ def change_volume():
 
 
 def stop():
-    global active, player
+    global active, player, story_queued
     active = False
     if player:
         player.stop()
+        player = None
+    story_queued = None
     print("[player] 🛑 Player mode OFF")
+
 
 
 def start():
