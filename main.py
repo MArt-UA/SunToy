@@ -41,6 +41,7 @@ def on_rec_pressed(channel):
 def on_volume_pressed(channel):
     print(f"[main] 🔊 VOLUME pressed (mode={current_mode})")
     player.change_volume()
+    recorder.change_volume()
 
 # bind events
 GPIO.add_event_detect(PLAY_PIN, GPIO.FALLING,

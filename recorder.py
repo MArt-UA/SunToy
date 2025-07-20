@@ -6,6 +6,7 @@ from pydub import AudioSegment
 # === GPIO PINS ===
 LED_RED   = 16
 LED_GREEN = 26
+VOLUME_PIN = 22   # кнопка гучності
 
 # === AUDIO PATHS ===
 BASE           = "/home/pi/SunToy/SunToy/sounds/Record"
@@ -32,6 +33,15 @@ GPIO.setup(LED_RED,   GPIO.OUT)
 GPIO.setup(LED_GREEN, GPIO.OUT)
 GPIO.output(LED_RED,   False)
 GPIO.output(LED_GREEN, False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(VOLUME_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+
+# === VOLUME SETTINGS ===
+volume           = 0.7    # 0.0–1.0
+VOLUME_DOWN_STEP = 0.1
+VOLUME_UP_STEP   = 0.05
+HOLD_INTERVAL    = 0.5
 
 def play_audio(path):
     global player
@@ -42,7 +52,7 @@ def play_audio(path):
         if player:
             player.stop()
         player = vlc_instance.media_player_new(path)
-        player.audio_set_volume(70)
+        player.audio_set_volume(int(volume * 100))
         player.play()
 
 def mix_with_background():
@@ -80,6 +90,49 @@ def rec_button_pressed():
             play_audio(RECORD_FINISH)
             mix_with_background()
             blink_green  = True
+
+def change_volume():
+    """Змінює гучність циклічно (80 → 100 → 40 → 80)."""
+    global volume
+    if   volume < 0.8: volume = 0.8
+    elif volume < 1.0: volume = 1.0
+    elif volume < 1.1: volume = 0.4
+    else: volume = 0.8
+    if player:
+        player.audio_set_volume(int(volume * 100))
+    print(f"[player] 🌀 Vol: {int(volume*100)}%")
+
+
+def watch_volume_button():
+    """Керування гучністю, тільки коли active==True."""
+    global volume
+    pressed = False
+    last_time = 0.0
+    while True:
+        if not active:
+            time.sleep(0.1)
+            continue
+        state = GPIO.input(VOLUME_PIN)
+        now = time.time()
+        if state == GPIO.LOW:
+            if not pressed:
+                pressed = True
+                volume = max(0.0, volume - VOLUME_DOWN_STEP)
+                if player:
+                    player.audio_set_volume(int(volume*100))
+                print(f"[player] 🔉 Vol: {int(volume*100)}%")
+                last_time = now
+            else:
+                if now - last_time >= HOLD_INTERVAL:
+                    volume = min(1.0, volume + VOLUME_UP_STEP)
+                    if player:
+                        player.audio_set_volume(int(volume*100))
+                    print(f"[player] 🔊 Vol: {int(volume*100)}%")
+                    last_time = now
+        else:
+            pressed = False
+        time.sleep(0.05)
+
 
 def play_button_pressed():
     """Відтворити FINAl_WAV чи NOT_READY."""
