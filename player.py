@@ -90,7 +90,7 @@ def start():
     """Викликається з main.py при PLAYER_TAG."""
     global active
     active = True
-    threading.Thread(target=watch_volume_button, daemon=True).start()
+    #threading.Thread(target=watch_volume_button, daemon=True).start()
     print("[player] 🚀 Player mode ON — VOLUME on GPIO27, PLAY on GPIO17")
 
 def stop():
