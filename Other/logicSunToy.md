@@ -145,7 +145,10 @@ pi@raspberrypi:~/SunToy/SunToy $ /usr/bin/python /home/pi/SunToy/SunToy/main.py
 [main] ▶️ Boot: boosting USB volume
 [main] 📡 NFC watch started
 [main] 📛 Tag: 53c4be5d720001
+[recorder] play_audio(/home/pi/SunToy/SunToy/sounds/Record/record_start.mp3), player=None
+[recorder] player.play() CALLED
 [recorder] 🔴 Recorder mode ON — press REC (GPIO27) to record
+[b2003b28] alsa audio output error: cannot estimate delay: Input/output error
 [main] 🔘 REC pressed, mode=recorder
 [recorder] 🎙️ Start recording…
 [recorder] 🗑️ Видалено старий запис RAW_WAV
@@ -155,17 +158,26 @@ Recording WAVE '/home/pi/SunToy/SunToy/sounds/Record/recorded_story.wav' : Signe
 [recorder] ⏹️ Stop recording
 Aborted by signal Припинено...
 arecord: pcm_read:2152: read error: Перерваний системний виклик
+[recorder] play_audio(/home/pi/SunToy/SunToy/sounds/Record/record_end.mp3), player=<vlc.MediaPlayer object at 0xb223f148>
+[recorder] Stopping old player...
+[recorder] player.play() CALLED
 [recorder] 🔄 Mixing audio...
-[b520b598] alsa audio output error: cannot estimate delay: Input/output error
+[b2b01f08] alsa audio output error: cannot estimate delay: Input/output error
 [recorder] ✅ Mixed final story
-[main] 🔘 REC pressed, mode=recorder
 [main] ▶️ PLAY pressed, mode=recorder
-[recorder] ▶️ Resumed
+[recorder] toggle_pause_resume CALLED, player=<vlc.MediaPlayer object at 0xb223f238>
+[recorder] RESUME
+[main] ▶️ PLAY pressed, mode=recorder
+[recorder] toggle_pause_resume CALLED, player=<vlc.MediaPlayer object at 0xb223f238>
+[recorder] RESUME
 ^CTraceback (most recent call last):
   File "/home/pi/SunToy/SunToy/main.py", line 156, in <module>
     main()
   File "/home/pi/SunToy/SunToy/main.py", line 153, in main
     time.sleep(1)
 KeyboardInterrupt
+
+
+
 
 
