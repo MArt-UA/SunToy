@@ -6,8 +6,7 @@ from pydub import AudioSegment
 # === GPIO PINS ===
 LED_RED   = 16
 LED_GREEN = 26
-VOLUME_PIN = 22   # кнопка гучності
-
+VOLUME_PIN = 22 # кнопка гучності
 # === AUDIO PATHS ===
 BASE           = "/home/pi/SunToy/SunToy/sounds/Record"
 RECORD_START   = os.path.join(BASE, "record_start.mp3")
@@ -45,20 +44,15 @@ HOLD_INTERVAL    = 0.5
 
 def play_audio(path):
     global player
-    print(f"[recorder] play_audio({path}), player={player}")
     if not os.path.exists(path):
         print(f"[recorder] ERROR: {path} not found")
         return
     with lock:
         if player:
-            print("[recorder] Stopping old player...")
             player.stop()
-            player = None
         player = vlc_instance.media_player_new(path)
-        player.audio_set_volume(int(volume * 100))
+       player.audio_set_volume(int(volume * 100))
         player.play()
-        print(f"[recorder] player.play() CALLED")
-
 
 def mix_with_background():
     print("[recorder] 🔄 Mixing audio...")
@@ -101,7 +95,6 @@ def rec_button_pressed():
             play_audio(RECORD_FINISH)
             mix_with_background()
             blink_green  = True
-
 def change_volume():
     """Змінює гучність циклічно (80 → 100 → 40 → 80)."""
     global volume, player
@@ -110,30 +103,27 @@ def change_volume():
     elif volume < 1.1: volume = 0.4
     else: volume = 0.8
     if player:
-        player.audio_set_volume(int(volume * 100))
+    player.audio_set_volume(int(volume * 100))
     print(f"[recorder] 🌀 Vol: {int(volume*100)}%")
 
-def toggle_pause_resume():
-    """Play/Pause/Resume для записаної історії."""
-    global player
+def play_button_pressed():
+    """Play/Pause/Resume або старт з початку."""
+    global blink_green, player
     with lock:
-        print(f"[recorder] toggle_pause_resume CALLED, player={player}")
-        if not os.path.exists(FINAL_WAV) or os.path.getsize(FINAL_WAV) < 10000:
-            print("[recorder] ❌ Story not ready (no file or too small)")
+        blink_green = False
+        GPIO.output(LED_GREEN, False)
+        if not recorded or not os.path.exists(FINAL_WAV):
+            print("[recorder] ❌ Story not ready")
             play_audio(NOT_READY_MP3)
-            return
-        if not player:
-            print("[recorder] START new playback")
-            play_audio(FINAL_WAV)
-        elif player.is_playing():
-            print("[recorder] PAUSE")
+        elif player and player.is_playing():
             player.pause()
-        else:
-            print("[recorder] RESUME")
+            print("[recorder] ⏸️ Paused")
+        elif player:
             player.play()
-
-
-
+            print("[recorder] ▶️ Resumed")
+        else:
+            print("[recorder] ▶️ Playing final story")
+            play_audio(FINAL_WAV)
 
 
 def led_blinker():
@@ -151,25 +141,21 @@ def led_blinker():
 threading.Thread(target=led_blinker, daemon=True).start()
 
 def start():
-    global record_mode, blink_green, player
+    """Викликається з main.py при RECORDER_TAG."""
+    global record_mode, blink_green
     record_mode = True
     blink_green = False
-    if player:
-        player.stop()
-        player = None
     play_audio(RECORD_START)
     print("[recorder] 🔴 Recorder mode ON — press REC (GPIO27) to record")
 
-
 def stop():
-    global record_mode, player
+    """Можна викликати з main.py, якщо хочете вийти з recorder-mode."""
+    global record_mode
     record_mode = False
-    if player:
-        player.stop()
-        player = None
     print("[recorder] 🛑 Recorder mode OFF")
 
-def stop_playback():
+    def stop_playback():
+    """Зупиняє будь-яке поточне відтворення історії."""
     global player
     if player:
         player.stop()
