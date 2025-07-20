@@ -138,3 +138,34 @@ PiLED2([GPIO 19])───►LED2[NFC ]
 PiLED4([GPIO 16])───►LED4[Play/Pause ]
 PiLED3([GPIO 26])───►LED3[Rec ]
 end
+
+
+pi@raspberrypi:~/SunToy/SunToy $ /usr/bin/python /home/pi/SunToy/SunToy/main.py
+[main] PN532 fw 1.6
+[main] ▶️ Boot: boosting USB volume
+[main] 📡 NFC watch started
+[main] 📛 Tag: 53c4be5d720001
+[recorder] 🔴 Recorder mode ON — press REC (GPIO27) to record
+[main] 🔘 REC pressed, mode=recorder
+[recorder] 🎙️ Start recording…
+[recorder] 🗑️ Видалено старий запис RAW_WAV
+[recorder] 🗑️ Видалено старий файл FINAL_WAV
+Recording WAVE '/home/pi/SunToy/SunToy/sounds/Record/recorded_story.wav' : Signed 16 bit Little Endian, Rate 44100 Hz, Stereo
+[main] 🔘 REC pressed, mode=recorder
+[recorder] ⏹️ Stop recording
+Aborted by signal Припинено...
+arecord: pcm_read:2152: read error: Перерваний системний виклик
+[recorder] 🔄 Mixing audio...
+[b520b598] alsa audio output error: cannot estimate delay: Input/output error
+[recorder] ✅ Mixed final story
+[main] 🔘 REC pressed, mode=recorder
+[main] ▶️ PLAY pressed, mode=recorder
+[recorder] ▶️ Resumed
+^CTraceback (most recent call last):
+  File "/home/pi/SunToy/SunToy/main.py", line 156, in <module>
+    main()
+  File "/home/pi/SunToy/SunToy/main.py", line 153, in main
+    time.sleep(1)
+KeyboardInterrupt
+
+
