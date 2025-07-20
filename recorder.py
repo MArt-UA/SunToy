@@ -51,7 +51,7 @@ def play_audio(path):
         if player:
             player.stop()
         player = vlc_instance.media_player_new(path)
-       player.audio_set_volume(int(volume * 100))
+        player.audio_set_volume(int(volume * 100))
         player.play()
 
 def mix_with_background():
@@ -103,8 +103,10 @@ def change_volume():
     elif volume < 1.1: volume = 0.4
     else: volume = 0.8
     if player:
-    player.audio_set_volume(int(volume * 100))
+        player.audio_set_volume(int(volume * 100))
     print(f"[recorder] 🌀 Vol: {int(volume*100)}%")
+
+
 
 def play_button_pressed():
     """Play/Pause/Resume або старт з початку."""
@@ -118,9 +120,6 @@ def play_button_pressed():
         elif player and player.is_playing():
             player.pause()
             print("[recorder] ⏸️ Paused")
-        elif player:
-            player.play()
-            print("[recorder] ▶️ Resumed")
         else:
             print("[recorder] ▶️ Playing final story")
             play_audio(FINAL_WAV)
@@ -155,7 +154,7 @@ def stop():
     print("[recorder] 🛑 Recorder mode OFF")
 
     def stop_playback():
-    """Зупиняє будь-яке поточне відтворення історії."""
+     """Зупиняє будь-яке поточне відтворення історії."""
     global player
     if player:
         player.stop()
