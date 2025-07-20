@@ -66,16 +66,17 @@ def toggle_pause_resume():
             player.play()
             print("[player] ▶️ Resumed")
 
-#def change_volume():
+def change_volume():
     """Змінює гучність циклічно (80 → 100 → 40 → 80)."""
-    global volume
+    global volume, player
     if   volume < 0.8: volume = 0.8
     elif volume < 1.0: volume = 1.0
     elif volume < 1.1: volume = 0.4
     else: volume = 0.8
     if player:
         player.audio_set_volume(int(volume * 100))
-    print(f"[player] 🌀 Vol: {int(volume*100)}%")
+    print(f"[recorder] 🌀 Vol: {int(volume*100)}%")
+
 
 def stop():
     global active, player
@@ -84,36 +85,6 @@ def stop():
         player.stop()
     print("[player] 🛑 Player mode OFF")
 
-
-def change_volume():
-    """Керування гучністю, тільки коли active==True."""
-    global volume
-    pressed = False
-    last_time = 0.0
-    while True:
-        if not active:
-            time.sleep(0.1)
-            continue
-        state = GPIO.input(VOLUME_PIN)
-        now = time.time()
-        if state == GPIO.LOW:
-            if not pressed:
-                pressed = True
-                volume = max(0.0, volume - VOLUME_DOWN_STEP)
-                if player:
-                    player.audio_set_volume(int(volume*100))
-                print(f"[player] 🔉 Vol: {int(volume*100)}%")
-                last_time = now
-            else:
-                if now - last_time >= HOLD_INTERVAL:
-                    volume = min(1.0, volume + VOLUME_UP_STEP)
-                    if player:
-                        player.audio_set_volume(int(volume*100))
-                    print(f"[player] 🔊 Vol: {int(volume*100)}%")
-                    last_time = now
-        else:
-            pressed = False
-        time.sleep(0.05)
 
 def start():
     """Викликається з main.py при PLAYER_TAG."""
