@@ -112,12 +112,14 @@ def toggle_pause_resume():
     """Play/Pause/Resume для записаної історії."""
     global player, recorded
     with lock:
-        if not recorded or not os.path.exists(FINAL_WAV):
-            print("[recorder] ❌ Story not ready")
+        # Перевірка існування файла та валідності
+        if not os.path.exists(FINAL_WAV) or os.path.getsize(FINAL_WAV) < 10000:
+            print("[recorder] ❌ Story not ready (no file or too small)")
             play_audio(NOT_READY_MP3)
             return
+        # Додаємо: запис дійсно був — прапорець true
+        recorded = True
         if not player:
-            # Якщо нічого не грає, стартуємо спочатку
             play_audio(FINAL_WAV)
             print("[recorder] ▶️ Start playing")
         elif player.is_playing():
@@ -126,6 +128,7 @@ def toggle_pause_resume():
         else:
             player.play()
             print("[recorder] ▶️ Resumed")
+
 
 
 
@@ -144,21 +147,25 @@ def led_blinker():
 threading.Thread(target=led_blinker, daemon=True).start()
 
 def start():
-    """Викликається з main.py при RECORDER_TAG."""
-    global record_mode, blink_green
+    global record_mode, blink_green, player
     record_mode = True
     blink_green = False
+    if player:
+        player.stop()
+        player = None
     play_audio(RECORD_START)
     print("[recorder] 🔴 Recorder mode ON — press REC (GPIO27) to record")
 
+
 def stop():
-    """Можна викликати з main.py, якщо хочете вийти з recorder-mode."""
-    global record_mode
+    global record_mode, player
     record_mode = False
+    if player:
+        player.stop()
+        player = None
     print("[recorder] 🛑 Recorder mode OFF")
 
 def stop_playback():
-    """Зупиняє будь-яке поточне відтворення історії."""
     global player
     if player:
         player.stop()
