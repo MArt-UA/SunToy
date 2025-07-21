@@ -31,7 +31,8 @@ def on_play_pressed(channel):
     if current_mode == "player":
         player.toggle_pause_resume()
     elif current_mode == "recorder":
-        recorder.play_button_pressed()
+        recorder.toggle_pause_resume()
+
     else:
         print("[main] ▶️ PLAY ignored, no mode")
 

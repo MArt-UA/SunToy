@@ -108,21 +108,34 @@ def change_volume():
 
 
 
-def play_button_pressed():
+def toggle_pause_resume():
     """Play/Pause/Resume або старт з початку."""
-    global blink_green, player
+    global player, recorded
     with lock:
-        blink_green = False
-        GPIO.output(LED_GREEN, False)
         if not recorded or not os.path.exists(FINAL_WAV):
             print("[recorder] ❌ Story not ready")
             play_audio(NOT_READY_MP3)
-        elif player and player.is_playing():
+            return
+
+        if not player:
+            # Ще не стартували — відтворюємо з початку
+            play_audio(FINAL_WAV)
+            print("[recorder] ▶️ Playing final story")
+        elif player.is_playing():
+            # Йде відтворення — пауза
             player.pause()
             print("[recorder] ⏸️ Paused")
         else:
-            print("[recorder] ▶️ Playing final story")
-            play_audio(FINAL_WAV)
+            # Є плеєр, але не грає: Resume, якщо це пауза
+            # Або якщо вже закінчив грати — знову з початку!
+            state = player.get_state()
+            if state == vlc.State.Ended or state == vlc.State.Stopped:
+                print("[recorder] ▶️ Playing final story (restart)")
+                play_audio(FINAL_WAV)
+            else:
+                player.play()
+                print("[recorder] ▶️ Resumed")
+
 
 
 def led_blinker():
