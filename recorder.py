@@ -11,7 +11,7 @@ VOLUME_PIN = 22 # кнопка гучності
 BASE           = "/home/pi/SunToy/SunToy/sounds/Record"
 RECORD_START   = os.path.join(BASE, "record_start.mp3")
 RECORD_FINISH  = os.path.join(BASE, "record_end.mp3")
-BACKGROUND_MP3 = os.path.join(BASE, "backgroundSoundForRecord20.mp3")
+BACKGROUND_MP3 = os.path.join(BASE, "backgroundSoundForRecord30.mp3")
 RAW_WAV        = os.path.join(BASE, "recorded_story.wav")
 FINAL_WAV      = os.path.join(BASE, "final_story.wav")
 NOT_READY_MP3  = os.path.join(BASE, "black-sabbath_-_iron-man.mp3")
@@ -56,8 +56,8 @@ def play_audio(path):
 
 def mix_with_background():
     print("[recorder] 🔄 Mixing audio...")
-    voice = AudioSegment.from_wav(RAW_WAV) + 25
-    music = AudioSegment.from_mp3(BACKGROUND_MP3) - 20
+    voice = AudioSegment.from_wav(RAW_WAV) + 20
+    music = AudioSegment.from_mp3(BACKGROUND_MP3) #- 20
     while len(music) < len(voice):
         music += music
     music = music[:len(voice)]
@@ -79,7 +79,7 @@ def rec_button_pressed():
                 os.remove(FINAL_WAV)
                 print("[recorder] 🗑️ Видалено старий файл FINAL_WAV")
             record_process = subprocess.Popen([
-                "arecord","-D","plughw:3,0",
+                "arecord","-D","plughw:1,0",
                 "-f","cd","-t","wav","-d","180", RAW_WAV
             ])
             is_recording = True
